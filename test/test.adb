@@ -79,7 +79,8 @@ begin
       Pop := P.New_Generation(Pop);
    end loop;
 
-   Image(P.Best_Chromosome(Pop) + " Value of chromosome :" + Float'Image(P.Eval(P.Best_Chromosome(Pop)));
+   Image(P.Best_Chromosome(Pop));
+   Put_Line( "Value of the best chromosome :" & Float'Image(Eval_x2(P.Best_Chromosome(Pop))));
 
 
 end;

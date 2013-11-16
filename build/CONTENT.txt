@@ -1,0 +1,6 @@
+
+this folder contains the build result of compilation
+
+we have created this file for creating the folder needed by the compiler
+
+
