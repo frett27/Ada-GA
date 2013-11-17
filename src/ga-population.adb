@@ -21,51 +21,41 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
 with Ada.Numerics.Float_Random;
-
 with Ada.Containers.Generic_Array_Sort;
 
-with Ada.Text_Io;
-use Ada.Text_Io;
+package body Ga.Population is
 
-package body Ga is
-
-
-   function "<" (Left , Right : Evaluated_Chromosome)
-                return Boolean is
+   function "<" (Left, Right : Evaluated_Chromosome) return Boolean is
    begin
       -- desc ordering ...
       return Left.V > Right.V;
-   end;
+   end "<";
 
-
-   procedure Add(P : in out Pop_Type ; C : in Chromosome) is
+   procedure Add (P : in out Pop_Type; C : in Chromosome) is
    begin
       declare
          E : Evaluated_Chromosome;
       begin
-         E.C := C;
-         E.V := Eval(E.C);
-         P.Pop(P.Chromosome_Count + 1) := E;
-         P.Chromosome_Count := Natural'Succ(P.Chromosome_Count);
+         E.C                            := C;
+         E.V                            := Eval (E.C);
+         P.Pop (P.Chromosome_Count + 1) := E;
+         P.Chromosome_Count             := Natural'Succ (P.Chromosome_Count);
       end;
-   end;
-
+   end Add;
 
    function Create_Random_Pop return Pop_Type is
       New_Pop : Pop_Type;
    begin
-      for I in 1..Pop_Size loop
-         Add(New_Pop, Random);
+      for I in 1 .. Pop_Size loop
+         Add (New_Pop, Random);
       end loop;
       return New_Pop;
-   end;
+   end Create_Random_Pop;
 
    -- look the best chromosome of the population
    -- this is a o(n) implementation
-   function Best_Chromosome( P : Pop_Type )
-                           return Chromosome is
+   function Best_Chromosome (P : Pop_Type) return Chromosome is
    begin
       if P.Chromosome_Count = 0 then
          raise Empty_Population;
@@ -74,99 +64,99 @@ package body Ga is
       declare
          J : Positive := 1;
       begin
-         for I in 1..P.Chromosome_Count loop
-            if P.Pop(I).V > P.Pop(j).V then
+         for I in 1 .. P.Chromosome_Count loop
+            if P.Pop (I).V > P.Pop (J).V then
                J := I;
             end if;
          end loop;
-         return P.Pop(J).C;
+         return P.Pop (J).C;
       end;
-   end;
+   end Best_Chromosome;
 
    -------------------------------------------------------------
    --
    --  new generation sub routines ....
    --
 
-
    -- random package for each random operation on GA ....
 
-
-
-
+   -- Random generator for selection wheel
    Selection_Wheel_Random : Ada.Numerics.Float_Random.Generator;
+
+   -- Random Generator for CrossOver
    Crossover_Random : Ada.Numerics.Float_Random.Generator;
+
+   -- Random Generator for Mutation
    Mutation_Random : Ada.Numerics.Float_Random.Generator;
 
-
-   -- create a new array sorted by the inverted order of the chromosome value 
-   function Sort_Chromosome_Array( A : Evaluated_Chromosome_Array )
-                                 return Evaluated_Chromosome_Array is
+   -- create a new array sorted by the inverted order of the chromosome value
+   function Sort_Chromosome_Array
+     (A    : Evaluated_Chromosome_Array)
+      return Evaluated_Chromosome_Array
+   is
       New_Arr : Evaluated_Chromosome_Array := A;
 
-      procedure Sort is
-         new Ada.Containers.Generic_Array_Sort
-        (Index_Type => Positive,
+      procedure Sort is new Ada.Containers.Generic_Array_Sort (
+         Index_Type   => Positive,
          Element_Type => Evaluated_Chromosome,
-         Array_Type => Evaluated_Chromosome_Array);
+         Array_Type   => Evaluated_Chromosome_Array);
 
    begin
-      Sort(New_Arr);
+      Sort (New_Arr);
       return New_Arr;
-   end;
+   end Sort_Chromosome_Array;
 
-
-
-
-   -- cree une nouvelle g?n?ration ? partir d'une population
-   function New_Generation ( P : in Pop_Type )
-                           return Pop_Type
-   is
+   -- make evolve a population
+   function New_Generation (P : in Pop_Type) return Pop_Type is
       use Ada.Numerics.Float_Random;
 
       New_Pop : Pop_Type;
 
-      function Sum(ECA : Evaluated_Chromosome_Array) return Float
-      is
+      function Sum (ECA : Evaluated_Chromosome_Array) return Float is
          V : Float := 0.0;
       begin
-         for I in Eca'Range loop
-         V := V + Eca(I).V;
+         for I in ECA'Range loop
+            V := V + ECA (I).V;
          end loop;
          return V;
-      end;
+      end Sum;
 
       -- selection
-      function Wheel_Select (Sorted_Array : in Evaluated_Chromosome_Array)
-                           return Evaluated_Chromosome is
-         C : Float := Random(Selection_Wheel_Random) * Sum(Sorted_Array);
-         F : Float := Sorted_Array(Sorted_Array'First).V;
+      function Wheel_Select
+        (Sorted_Array : in Evaluated_Chromosome_Array)
+         return         Evaluated_Chromosome
+      is
+         C : Float    :=
+           Random (Selection_Wheel_Random) * Sum (Sorted_Array);
+         F : Float    := Sorted_Array (Sorted_Array'First).V;
          I : Positive := Sorted_Array'First;
       begin
 
          while I < Sorted_Array'Last and then F <= C loop
             I := I + 1;
-            F := F + Sorted_Array(I).V;
+            F := F + Sorted_Array (I).V;
          end loop;
 
          if I > Sorted_Array'Last then
             I := Sorted_Array'Last;
          end if;
 
-         return Sorted_Array(I);
+         return Sorted_Array (I);
 
-      end;
+      end Wheel_Select;
 
       --
       -- improve the local search of solutions
       --
-      procedure Normalize(Sorted_Array : in out Evaluated_Chromosome_Array) is
+      procedure Normalize
+        (Sorted_Array : in out Evaluated_Chromosome_Array)
+      is
       begin
          for I in Sorted_Array'Range loop
-            Sorted_Array(I).V := Sorted_Array(I).V - Sorted_Array(Sorted_Array'Last).V;
+            Sorted_Array (I).V := Sorted_Array (I).V -
+                                  Sorted_Array (Sorted_Array'Last).V;
          end loop;
-      end;
-
+      end Normalize;
 
    begin
       if P.Chromosome_Count = 0 then
@@ -176,46 +166,47 @@ package body Ga is
 
       declare
          Last_Index_Conservation : Positive :=
-           Natural(Pop_Conservation * float(P.Chromosome_Count - 1) + 1.0);
+           Natural (Pop_Conservation * Float (P.Chromosome_Count - 1) + 1.0);
 
-         SA : Evaluated_Chromosome_Array :=
-           Sort_Chromosome_Array(P.Pop(1..Last_Index_Conservation));
+         Selected_Population : Evaluated_Chromosome_Array :=
+           Sort_Chromosome_Array (P.Pop (1 .. Last_Index_Conservation));
       begin
 
-         Normalize(Sa);
+         Normalize (Selected_Population);
 
-         for I in 1..Pop_Size / 2 loop
+         for I in 1 .. Pop_Size / 2 loop
             declare
-               EC1 : Evaluated_Chromosome := Wheel_Select(Sa);
-               EC2 : Evaluated_Chromosome := Wheel_Select(Sa);
+               EC1 : Evaluated_Chromosome :=
+                 Wheel_Select (Selected_Population);
+               EC2 : Evaluated_Chromosome :=
+                 Wheel_Select (Selected_Population);
             begin
 
                -- cross over ...
-               if Random(Crossover_Random) < Crossover_Ratio then
+               if Random (Crossover_Random) < Crossover_Ratio then
                   declare
                      Cout1, Cout2 : Chromosome;
                   begin
-                     Cross_Over(Ec1.C, Ec2.C, Cout1, Cout2);
-                     Ec1.C := Cout1;
-                     Ec2.C := Cout2;
+                     Cross_Over (EC1.C, EC2.C, Cout1, Cout2);
+                     EC1.C := Cout1;
+                     EC2.C := Cout2;
                   end;
                end if;
 
-
                -- mutate 1
 
-               if Random(Mutation_Random) < Mutation_Ratio then
-                  Ec1.C := Mutate(Ec1.C);
+               if Random (Mutation_Random) < Mutation_Ratio then
+                  EC1.C := Mutate (EC1.C);
                end if;
 
                -- mutate 2
 
-               if Random(Mutation_Random) < Mutation_Ratio then
-                  Ec2.C := Mutate(Ec2.C);
+               if Random (Mutation_Random) < Mutation_Ratio then
+                  EC2.C := Mutate (EC2.C);
                end if;
 
-               Add(New_Pop, Ec1.C);
-               Add(New_Pop, Ec2.C);
+               Add (New_Pop, EC1.C);
+               Add (New_Pop, EC2.C);
 
             end;
 
@@ -223,6 +214,6 @@ package body Ga is
 
       end;
       return New_Pop;
-   end;
+   end New_Generation;
 
-end Ga;
+end Ga.Population;

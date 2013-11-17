@@ -21,23 +21,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Gascalar;
-with Ga;
+with Ga.Population;
+with Ga.scalar;
 
 with Ada.Text_Io;
 use Ada.Text_Io;
 
 procedure Test is
 
+
    subtype Chromosome_Length is Positive range 1..30;
 
    -- package for creating a bunch of scalar operators for GA chromosomes
-   package CS is new Gascalar(Chromosome_Range 
+   package CS is new Ga.Scalar(Binary_Chromosome_Range 
 								=> Chromosome_Length);
 
    -- score function that evaluate the adaptative value of the chromosome
    -- this is the (Max - X)**2 function
-   function Eval_X2(C : CS.Chromosome) return Float is
+   function Eval_X2(C : CS.Binary_Chromosome) return Float is
    begin
       return (Float(2 ** 30 - 1) - Cs.Eval(C)) ** 2;
    end;
@@ -47,40 +48,27 @@ procedure Test is
 
    -- instanciate the GA package for GA computation
    -- we mainly use the Gascalar operations, except for Eval
-   package P is new Ga(Chromosome=>Chromosome,
+   package P is new Ga.Population(Chromosome=>Binary_Chromosome,
                        Eval => Eval_x2 ,
                        Cross_Over => Cross_Over,
                        Mutate => Mutate,
                        Random => Random,
                        Pop_Size => 500);
-
-   -- print method for the chromosome
-   procedure Image(C : Chromosome) is
-   begin
-      for I in C'Range loop
-         if C(I) then
-            Put("1");
-         else
-            Put("0");
-         end if;
-      end loop;
-   end;
-
    -- current population
    Pop : P.Pop_Type := P.Create_Random_Pop;
 
 begin
 
    Put_Line (" generation initiale ");
-   Image(P.Best_Chromosome(Pop));
+   Put_Line (CS.Image(P.Best_Chromosome(Pop)));
 
    Put_Line (" 5000 new generations ");
    for I in 1..5000 loop
       Pop := P.New_Generation(Pop);
    end loop;
 
-   Image(P.Best_Chromosome(Pop));
-   Put_Line( "Value of the best chromosome :" & Float'Image(Eval_x2(P.Best_Chromosome(Pop))));
+   Put_Line(CS.Image(P.Best_Chromosome(Pop)));
+   Put_Line( " Value of the best chromosome :" & Float'Image(Eval_x2(P.Best_Chromosome(Pop))));
 
 
 end;

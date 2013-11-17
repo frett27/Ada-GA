@@ -23,10 +23,10 @@
 
 with Ada.Numerics.Discrete_Random;
 
-package body Gascalar is
+package body GA.Scalar is
 
 
-   function Eval (C : Chromosome)
+   function Eval (C : Binary_Chromosome)
                  return Float is
       N : Natural := 0;
       P : Positive := 1;
@@ -40,46 +40,46 @@ package body Gascalar is
       return Float(N);
    end;
 
-   package Chromosome_Random is
-      new Ada.Numerics.Discrete_Random(Chromosome_Range);
+   package Binary_Chromosome_Random is
+      new Ada.Numerics.Discrete_Random(Binary_Chromosome_Range);
 
-   Chromosome_Generator : Chromosome_Random.Generator;
+   Binary_Chromosome_Generator : Binary_Chromosome_Random.Generator;
 
-   procedure Cross_Over (C1, C2       : in     Chromosome;
-                         Cout1, Cout2 :    out Chromosome)
+   procedure Cross_Over (C1, C2       : in     Binary_Chromosome;
+                         Cout1, Cout2 :    out Binary_Chromosome)
    is
-      use Chromosome_Random;
-      Decoupe : Chromosome_Range :=
-       Random(Chromosome_Generator);
+      use Binary_Chromosome_Random;
+      Decoupe : Binary_Chromosome_Range :=
+       Random(Binary_Chromosome_Generator);
    begin
 
-      if Decoupe = Chromosome_Range'First or
-        Decoupe = Chromosome_Range'Last then
+      if Decoupe = Binary_Chromosome_Range'First or
+        Decoupe = Binary_Chromosome_Range'Last then
          Cout1 := C2;
          Cout2 := C1;
       else
 
-         Cout1(Chromosome_Range'First .. Decoupe)
-           := C1(Chromosome_Range'First .. Decoupe);
-         Cout1(Decoupe + 1 .. Chromosome_Range'Last)
-           := C2(Decoupe + 1 .. Chromosome_Range'Last);
+         Cout1(Binary_Chromosome_Range'First .. Decoupe)
+           := C1(Binary_Chromosome_Range'First .. Decoupe);
+         Cout1(Decoupe + 1 .. Binary_Chromosome_Range'Last)
+           := C2(Decoupe + 1 .. Binary_Chromosome_Range'Last);
 
-         Cout2(Chromosome_Range'First .. Decoupe)
-           := C2(Chromosome_Range'First .. Decoupe);
-         Cout2(Decoupe + 1 .. Chromosome_Range'Last)
-           := C1(Decoupe + 1 .. Chromosome_Range'Last);
+         Cout2(Binary_Chromosome_Range'First .. Decoupe)
+           := C2(Binary_Chromosome_Range'First .. Decoupe);
+         Cout2(Decoupe + 1 .. Binary_Chromosome_Range'Last)
+           := C1(Decoupe + 1 .. Binary_Chromosome_Range'Last);
 
       end if;
 
 
    end;
 
-   function Mutate (C : Chromosome)
-                   return Chromosome
+   function Mutate (C : Binary_Chromosome)
+                   return Binary_Chromosome
    is
-      N : Chromosome_Range :=
-        Chromosome_Random.Random(Chromosome_Generator);
-      Cout : Chromosome := C;
+      N : Binary_Chromosome_Range :=
+        Binary_Chromosome_Random.Random(Binary_Chromosome_Generator);
+      Cout : Binary_Chromosome := C;
    begin
       Cout(N) := not Cout(N);
       return Cout;
@@ -93,11 +93,11 @@ package body Gascalar is
    Boolean_Generator : Boolean_Random.Generator;
 
    function Random
-     return Chromosome is
+     return Binary_Chromosome is
       use Boolean_Random;
-      Cout : Chromosome := (others => False);
+      Cout : Binary_Chromosome := (others => False);
    begin
-      for I in Chromosome'Range loop
+      for I in Binary_Chromosome'Range loop
          if Random(Boolean_Generator) = 1 then
             Cout(I) := True;
          end if;
@@ -105,4 +105,18 @@ package body Gascalar is
       return Cout;
    end;
 
-end Gascalar;
+
+   function Image (C : Binary_Chromosome) return String is
+      S : String(Integer(C'First)..Integer(C'Last));
+   begin
+	  for i in C'range loop
+          if (C(i)) then
+             S(Integer(i)) := '1';
+          else
+             S(Integer(i)) := '0';
+          end if;
+      end loop;
+      return S;
+   end;
+
+end Ga.Scalar;

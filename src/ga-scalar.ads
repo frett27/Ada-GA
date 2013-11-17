@@ -20,20 +20,33 @@
 --  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+
+-- implementation of a fixed length chromosome using binary scheme
+
 generic
 
-   type Chromosome_Range is range <>;
+   type Binary_Chromosome_Range is range <>;
 
-package Gascalar is
+package Ga.Scalar is
 
-   type Chromosome is
-     array(Chromosome_Range) of Boolean;
+   type Binary_Chromosome is
+        array(Binary_Chromosome_Range) of Boolean;
 
-   function Eval(C : Chromosome) return Float;
+   -- eval the value of the chromosome
+   function Eval(C : Binary_Chromosome) return Float;
 
-   procedure Cross_Over (C1, C2       : in     Chromosome;
-                         Cout1, Cout2 :    out Chromosome);
-   function Mutate (C : Chromosome) return Chromosome;
-   function Random return Chromosome;
+   -- cross_over two chromosome
+   procedure Cross_Over (C1, C2       : in     Binary_Chromosome;
+                         Cout1, Cout2 :    out Binary_Chromosome);
 
-end Gascalar;
+   -- mutate a chromosome
+   function Mutate (C : Binary_Chromosome) return Binary_Chromosome;
+
+   -- random generation of a chromosome
+   function Random return Binary_Chromosome;
+
+   function Image (C : Binary_Chromosome) return String;
+
+
+end Ga.Scalar;
