@@ -23,13 +23,13 @@
 
 -- Template for defining a generic population
 generic
-   type Chromosome is private;
-   with function Eval (C : Chromosome) return Float;
+   type Gene is private;
+   with function Eval (C : Gene) return Float;
    with procedure Cross_Over
-     (C1, C2       : in Chromosome;
-      Cout1, Cout2 : out Chromosome);
-   with function Mutate (C : Chromosome) return Chromosome;
-   with function Random return Chromosome;
+     (C1, C2       : in Gene;
+      Cout1, Cout2 : out Gene);
+   with function Mutate (C : Gene) return Gene;
+   with function Random return Gene;
 
    Pop_Size : Positive := 50;
    Pop_Conservation : Float := 0.8; -- on garde les 80 des meilleurs individus
@@ -53,26 +53,26 @@ package Ga.Population is
    function New_Generation (P : Pop_Type) return Pop_Type;
 
    -- return the best chromosome for this population
-   function Best_Chromosome (P : Pop_Type) return Chromosome;
+   function Best_Gene (P : Pop_Type) return Gene;
 
    Empty_Population : exception;
 
 private
 
-   -- Chromosome with its associated value
-   type Evaluated_Chromosome is record
-      C : Chromosome;
+   -- Gene with its associated value
+   type Evaluated_Gene is record
+      C : Gene;
       V : Float;
    end record;
 
-   -- array of Evaluated_Chromosome
-   type Evaluated_Chromosome_Array is
-     array (Positive range <>) of Evaluated_Chromosome;
+   -- array of Evaluated_Gene
+   type Evaluated_Gene_Array is
+     array (Positive range <>) of Evaluated_Gene;
 
    -- Population type
    type Pop_Type is record
-      Pop              : Evaluated_Chromosome_Array (1 .. Pop_Size);
-      Chromosome_Count : Natural := 0;
+      Pop              : Evaluated_Gene_Array (1 .. Pop_Size);
+      Gene_Count : Natural := 0;
    end record;
 
 end Ga.Population;

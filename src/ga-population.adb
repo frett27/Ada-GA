@@ -26,21 +26,21 @@ with Ada.Containers.Generic_Array_Sort;
 
 package body Ga.Population is
 
-   function "<" (Left, Right : Evaluated_Chromosome) return Boolean is
+   function "<" (Left, Right : Evaluated_Gene) return Boolean is
    begin
       -- desc ordering ...
       return Left.V > Right.V;
    end "<";
 
-   procedure Add (P : in out Pop_Type; C : in Chromosome) is
+   procedure Add (P : in out Pop_Type; C : in Gene) is
    begin
       declare
-         E : Evaluated_Chromosome;
+         E : Evaluated_Gene;
       begin
          E.C                            := C;
          E.V                            := Eval (E.C);
-         P.Pop (P.Chromosome_Count + 1) := E;
-         P.Chromosome_Count             := Natural'Succ (P.Chromosome_Count);
+         P.Pop (P.Gene_Count + 1) := E;
+         P.Gene_Count             := Natural'Succ (P.Gene_Count);
       end;
    end Add;
 
@@ -55,23 +55,23 @@ package body Ga.Population is
 
    -- look the best chromosome of the population
    -- this is a o(n) implementation
-   function Best_Chromosome (P : Pop_Type) return Chromosome is
+   function Best_Gene (P : Pop_Type) return Gene is
    begin
-      if P.Chromosome_Count = 0 then
+      if P.Gene_Count = 0 then
          raise Empty_Population;
       end if;
 
       declare
          J : Positive := 1;
       begin
-         for I in 1 .. P.Chromosome_Count loop
+         for I in 1 .. P.Gene_Count loop
             if P.Pop (I).V > P.Pop (J).V then
                J := I;
             end if;
          end loop;
          return P.Pop (J).C;
       end;
-   end Best_Chromosome;
+   end Best_Gene;
 
    -------------------------------------------------------------
    --
@@ -90,21 +90,21 @@ package body Ga.Population is
    Mutation_Random : Ada.Numerics.Float_Random.Generator;
 
    -- create a new array sorted by the inverted order of the chromosome value
-   function Sort_Chromosome_Array
-     (A    : Evaluated_Chromosome_Array)
-      return Evaluated_Chromosome_Array
+   function Sort_Gene_Array
+     (A    : Evaluated_Gene_Array)
+      return Evaluated_Gene_Array
    is
-      New_Arr : Evaluated_Chromosome_Array := A;
+      New_Arr : Evaluated_Gene_Array := A;
 
       procedure Sort is new Ada.Containers.Generic_Array_Sort (
          Index_Type   => Positive,
-         Element_Type => Evaluated_Chromosome,
-         Array_Type   => Evaluated_Chromosome_Array);
+         Element_Type => Evaluated_Gene,
+         Array_Type   => Evaluated_Gene_Array);
 
    begin
       Sort (New_Arr);
       return New_Arr;
-   end Sort_Chromosome_Array;
+   end Sort_Gene_Array;
 
    -- make evolve a population
    function New_Generation (P : in Pop_Type) return Pop_Type is
@@ -112,7 +112,7 @@ package body Ga.Population is
 
       New_Pop : Pop_Type;
 
-      function Sum (ECA : Evaluated_Chromosome_Array) return Float is
+      function Sum (ECA : Evaluated_Gene_Array) return Float is
          V : Float := 0.0;
       begin
          for I in ECA'Range loop
@@ -123,8 +123,8 @@ package body Ga.Population is
 
       -- selection
       function Wheel_Select
-        (Sorted_Array : in Evaluated_Chromosome_Array)
-         return         Evaluated_Chromosome
+        (Sorted_Array : in Evaluated_Gene_Array)
+         return         Evaluated_Gene
       is
          C : Float    :=
            Random (Selection_Wheel_Random) * Sum (Sorted_Array);
@@ -149,7 +149,7 @@ package body Ga.Population is
       -- improve the local search of solutions
       --
       procedure Normalize
-        (Sorted_Array : in out Evaluated_Chromosome_Array)
+        (Sorted_Array : in out Evaluated_Gene_Array)
       is
       begin
          for I in Sorted_Array'Range loop
@@ -159,33 +159,33 @@ package body Ga.Population is
       end Normalize;
 
    begin
-      if P.Chromosome_Count = 0 then
+      if P.Gene_Count = 0 then
          -- no elements
          return New_Pop;
       end if;
 
       declare
          Last_Index_Conservation : Positive :=
-           Natural (Pop_Conservation * Float (P.Chromosome_Count - 1) + 1.0);
+           Natural (Pop_Conservation * Float (P.Gene_Count - 1) + 1.0);
 
-         Selected_Population : Evaluated_Chromosome_Array :=
-           Sort_Chromosome_Array (P.Pop (1 .. Last_Index_Conservation));
+         Selected_Population : Evaluated_Gene_Array :=
+           Sort_Gene_Array (P.Pop (1 .. Last_Index_Conservation));
       begin
 
          Normalize (Selected_Population);
 
          for I in 1 .. Pop_Size / 2 loop
             declare
-               EC1 : Evaluated_Chromosome :=
+               EC1 : Evaluated_Gene :=
                  Wheel_Select (Selected_Population);
-               EC2 : Evaluated_Chromosome :=
+               EC2 : Evaluated_Gene :=
                  Wheel_Select (Selected_Population);
             begin
 
                -- cross over ...
                if Random (Crossover_Random) < Crossover_Ratio then
                   declare
-                     Cout1, Cout2 : Chromosome;
+                     Cout1, Cout2 : Gene;
                   begin
                      Cross_Over (EC1.C, EC2.C, Cout1, Cout2);
                      EC1.C := Cout1;

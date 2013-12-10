@@ -30,15 +30,15 @@ use Ada.Text_Io;
 procedure Test is
 
 
-   subtype Chromosome_Length is Positive range 1..30;
+   subtype Gene_Length is Positive range 1..30;
 
    -- package for creating a bunch of scalar operators for GA chromosomes
-   package CS is new Ga.Scalar(Binary_Chromosome_Range 
-								=> Chromosome_Length);
+   package CS is new Ga.Scalar(Binary_Gene_Range 
+								=> Gene_Length);
 
    -- score function that evaluate the adaptative value of the chromosome
    -- this is the (Max - X)**2 function
-   function Eval_X2(C : CS.Binary_Chromosome) return Float is
+   function Eval_X2(C : CS.Binary_Gene) return Float is
    begin
       return (Float(2 ** 30 - 1) - Cs.Eval(C)) ** 2;
    end;
@@ -48,7 +48,7 @@ procedure Test is
 
    -- instanciate the GA package for GA computation
    -- we mainly use the Gascalar operations, except for Eval
-   package P is new Ga.Population(Chromosome=>Binary_Chromosome,
+   package P is new Ga.Population(Gene=>Binary_Gene,
                        Eval => Eval_x2 ,
                        Cross_Over => Cross_Over,
                        Mutate => Mutate,
@@ -60,15 +60,15 @@ procedure Test is
 begin
 
    Put_Line (" generation initiale ");
-   Put_Line (CS.Image(P.Best_Chromosome(Pop)));
+   Put_Line (CS.Image(P.Best_Gene(Pop)));
 
    Put_Line (" 5000 new generations ");
    for I in 1..5000 loop
       Pop := P.New_Generation(Pop);
    end loop;
 
-   Put_Line(CS.Image(P.Best_Chromosome(Pop)));
-   Put_Line( " Value of the best chromosome :" & Float'Image(Eval_x2(P.Best_Chromosome(Pop))));
+   Put_Line(CS.Image(P.Best_Gene(Pop)));
+   Put_Line( " Value of the best chromosome :" & Float'Image(Eval_x2(P.Best_Gene(Pop))));
 
 
 end;

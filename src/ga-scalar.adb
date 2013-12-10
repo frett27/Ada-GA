@@ -26,7 +26,7 @@ with Ada.Numerics.Discrete_Random;
 package body GA.Scalar is
 
 
-   function Eval (C : Binary_Chromosome)
+   function Eval (C : Binary_Gene)
                  return Float is
       N : Natural := 0;
       P : Positive := 1;
@@ -40,46 +40,46 @@ package body GA.Scalar is
       return Float(N);
    end;
 
-   package Binary_Chromosome_Random is
-      new Ada.Numerics.Discrete_Random(Binary_Chromosome_Range);
+   package Binary_Gene_Random is
+      new Ada.Numerics.Discrete_Random(Binary_Gene_Range);
 
-   Binary_Chromosome_Generator : Binary_Chromosome_Random.Generator;
+   Binary_Gene_Generator : Binary_Gene_Random.Generator;
 
-   procedure Cross_Over (C1, C2       : in     Binary_Chromosome;
-                         Cout1, Cout2 :    out Binary_Chromosome)
+   procedure Cross_Over (C1, C2       : in     Binary_Gene;
+                         Cout1, Cout2 :    out Binary_Gene)
    is
-      use Binary_Chromosome_Random;
-      Decoupe : Binary_Chromosome_Range :=
-       Random(Binary_Chromosome_Generator);
+      use Binary_Gene_Random;
+      Decoupe : Binary_Gene_Range :=
+       Random(Binary_Gene_Generator);
    begin
 
-      if Decoupe = Binary_Chromosome_Range'First or
-        Decoupe = Binary_Chromosome_Range'Last then
+      if Decoupe = Binary_Gene_Range'First or
+        Decoupe = Binary_Gene_Range'Last then
          Cout1 := C2;
          Cout2 := C1;
       else
 
-         Cout1(Binary_Chromosome_Range'First .. Decoupe)
-           := C1(Binary_Chromosome_Range'First .. Decoupe);
-         Cout1(Decoupe + 1 .. Binary_Chromosome_Range'Last)
-           := C2(Decoupe + 1 .. Binary_Chromosome_Range'Last);
+         Cout1(Binary_Gene_Range'First .. Decoupe)
+           := C1(Binary_Gene_Range'First .. Decoupe);
+         Cout1(Decoupe + 1 .. Binary_Gene_Range'Last)
+           := C2(Decoupe + 1 .. Binary_Gene_Range'Last);
 
-         Cout2(Binary_Chromosome_Range'First .. Decoupe)
-           := C2(Binary_Chromosome_Range'First .. Decoupe);
-         Cout2(Decoupe + 1 .. Binary_Chromosome_Range'Last)
-           := C1(Decoupe + 1 .. Binary_Chromosome_Range'Last);
+         Cout2(Binary_Gene_Range'First .. Decoupe)
+           := C2(Binary_Gene_Range'First .. Decoupe);
+         Cout2(Decoupe + 1 .. Binary_Gene_Range'Last)
+           := C1(Decoupe + 1 .. Binary_Gene_Range'Last);
 
       end if;
 
 
    end;
 
-   function Mutate (C : Binary_Chromosome)
-                   return Binary_Chromosome
+   function Mutate (C : Binary_Gene)
+                   return Binary_Gene
    is
-      N : Binary_Chromosome_Range :=
-        Binary_Chromosome_Random.Random(Binary_Chromosome_Generator);
-      Cout : Binary_Chromosome := C;
+      N : Binary_Gene_Range :=
+        Binary_Gene_Random.Random(Binary_Gene_Generator);
+      Cout : Binary_Gene := C;
    begin
       Cout(N) := not Cout(N);
       return Cout;
@@ -93,11 +93,11 @@ package body GA.Scalar is
    Boolean_Generator : Boolean_Random.Generator;
 
    function Random
-     return Binary_Chromosome is
+     return Binary_Gene is
       use Boolean_Random;
-      Cout : Binary_Chromosome := (others => False);
+      Cout : Binary_Gene := (others => False);
    begin
-      for I in Binary_Chromosome'Range loop
+      for I in Binary_Gene'Range loop
          if Random(Boolean_Generator) = 1 then
             Cout(I) := True;
          end if;
@@ -106,7 +106,7 @@ package body GA.Scalar is
    end;
 
 
-   function Image (C : Binary_Chromosome) return String is
+   function Image (C : Binary_Gene) return String is
       S : String(Integer(C'First)..Integer(C'Last));
    begin
 	  for i in C'range loop

@@ -26,27 +26,27 @@
 
 generic
 
-   type Binary_Chromosome_Range is range <>;
+   type Binary_Gene_Range is range <>;
 
 package Ga.Scalar is
 
-   type Binary_Chromosome is
-        array(Binary_Chromosome_Range) of Boolean;
+   type Binary_Gene is
+        array(Binary_Gene_Range) of Boolean;
 
    -- eval the value of the chromosome
-   function Eval(C : Binary_Chromosome) return Float;
+   function Eval(C : Binary_Gene) return Float;
 
    -- cross_over two chromosome
-   procedure Cross_Over (C1, C2       : in     Binary_Chromosome;
-                         Cout1, Cout2 :    out Binary_Chromosome);
+   procedure Cross_Over (C1, C2       : in     Binary_Gene;
+                         Cout1, Cout2 :    out Binary_Gene);
 
    -- mutate a chromosome
-   function Mutate (C : Binary_Chromosome) return Binary_Chromosome;
+   function Mutate (C : Binary_Gene) return Binary_Gene;
 
    -- random generation of a chromosome
-   function Random return Binary_Chromosome;
+   function Random return Binary_Gene;
 
-   function Image (C : Binary_Chromosome) return String;
+   function Image (C : Binary_Gene) return String;
 
 
 end Ga.Scalar;
