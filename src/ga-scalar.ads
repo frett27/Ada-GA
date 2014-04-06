@@ -33,7 +33,7 @@ package Ga.Scalar is
    type Binary_Gene is
         array(Binary_Gene_Range) of Boolean;
 
-   -- eval the value of the chromosome
+   -- eval the Binary value of the chromosome
    function Eval(C : Binary_Gene) return Float;
 
    -- cross_over two chromosome

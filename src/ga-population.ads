@@ -25,12 +25,10 @@
 generic
    type Gene is private;
    with function Eval (C : Gene) return Float;
-   with procedure Cross_Over
-     (C1, C2       : in Gene;
-      Cout1, Cout2 : out Gene);
+   with procedure Cross_Over (C1, C2 : in Gene; Cout1, Cout2 : out Gene);
    with function Mutate (C : Gene) return Gene;
    with function Random return Gene;
-   with function Image(C : Gene) return String;
+   with function Image (C : Gene) return String;
 
    Pop_Size : Positive := 50;
    Pop_Conservation : Float := 1.0; -- on garde les 80 des meilleurs individus
@@ -57,8 +55,7 @@ package Ga.Population is
    function Best_Gene (P : Pop_Type) return Gene;
 
    -- diaply the pop
-   procedure Dump(Popu: in Pop_Type);
-
+   procedure Dump (Popu : in Pop_Type);
 
    Empty_Population : exception;
 
@@ -70,19 +67,15 @@ private
       V : Float;
    end record;
 
-   subtype Pop_Range is Positive range 1..Pop_Size;
+   subtype Pop_Range is Positive range 1 .. Pop_Size;
 
    -- array of Evaluated_Gene
-   type Evaluated_Gene_Array is
-     array (Pop_Range range <>) of Evaluated_Gene;
-
+   type Evaluated_Gene_Array is array (Pop_Range range <>) of Evaluated_Gene;
 
    -- Population type
    type Pop_Type is record
-      Pop              : Evaluated_Gene_Array(Pop_Range);
-      Pop_Sum		   : Float;
+      Pop     : Evaluated_Gene_Array (Pop_Range);
+      Pop_Sum : Float;
    end record;
-
-
 
 end Ga.Population;

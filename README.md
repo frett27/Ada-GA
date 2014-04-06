@@ -1,11 +1,24 @@
 Ada-GA
 ======
 
-This project is a small library to compute genetic algorithm in Ada. It currently support only scalar chromosomes.
+This project is a small library to compute genetic algorithm in Ada.
+
+The aim is to use the Ada Generic System to provide the best performances (Mostly Static, no heap allocation).
+
+Currently :
+- binary chromosomes are provided, additional chromosome could be used in creating a new chromosome type
+- Population Elitism (conserv a pourcentage of the best chromosomes)
+- Mutations
+- CrossOver
+
+Random Generators are clearly separated on :
+- Mutation
+- CrossOver
+- Chromosome
 
 a test function show the use of the library for a scalar encoding of chromosome.
 
-## Install - Compile ##
+## Install - Compile - Test ##
 
 This project should compile on every Ada 2005 compliant compiler.We currently use GNAT 2005.
 
