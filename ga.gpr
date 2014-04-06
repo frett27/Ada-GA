@@ -34,7 +34,8 @@ project Ga is
    end Builder;
 
    package Compiler is
-      for Default_Switches ("ada") use ("-g","-gnat05","-O3");
+      --for Default_Switches ("ada") use ("-g","-gnat05","-O3");
+      for Default_Switches ("ada") use ("-g","-gnat05");
    end Compiler;
 
    package Binder is

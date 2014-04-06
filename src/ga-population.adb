@@ -24,6 +24,8 @@
 with Ada.Numerics.Float_Random;
 with Ada.Containers.Generic_Array_Sort;
 
+with Ada.Text_IO;
+
 package body Ga.Population is
 
    function "<" (Left, Right : Evaluated_Gene) return Boolean is
@@ -32,23 +34,21 @@ package body Ga.Population is
       return Left.V > Right.V;
    end "<";
 
-   procedure Add (P : in out Pop_Type; C : in Gene) is
+   procedure Add (P : in out Pop_Type; C : in Gene ; I : Pop_Range) is
    begin
       declare
-         E : Evaluated_Gene;
+         E : Evaluated_Gene := (C => C, V => Eval(C));
       begin
-         E.C                            := C;
-         E.V                            := Eval (E.C);
-         P.Pop (P.Gene_Count + 1) := E;
-         P.Gene_Count             := Natural'Succ (P.Gene_Count);
+         P.Pop (I) := E;
+		 P.Pop_Sum := P.Pop_Sum + E.V;
       end;
    end Add;
 
    function Create_Random_Pop return Pop_Type is
       New_Pop : Pop_Type;
    begin
-      for I in 1 .. Pop_Size loop
-         Add (New_Pop, Random);
+      for I in Pop_Range loop
+         Add (New_Pop, Random, I);
       end loop;
       return New_Pop;
    end Create_Random_Pop;
@@ -56,22 +56,15 @@ package body Ga.Population is
    -- look the best chromosome of the population
    -- this is a o(n) implementation
    function Best_Gene (P : Pop_Type) return Gene is
-   begin
-      if P.Gene_Count = 0 then
-         raise Empty_Population;
-      end if;
-
-      declare
          J : Positive := 1;
       begin
-         for I in 1 .. P.Gene_Count loop
-            if P.Pop (I).V > P.Pop (J).V then
+         for I in Pop_Range loop
+            if Eval(P.Pop (I).C) > Eval(P.Pop (J).C) then
                J := I;
             end if;
          end loop;
          return P.Pop (J).C;
-      end;
-   end Best_Gene;
+      end Best_Gene;
 
    -------------------------------------------------------------
    --
@@ -97,7 +90,7 @@ package body Ga.Population is
       New_Arr : Evaluated_Gene_Array := A;
 
       procedure Sort is new Ada.Containers.Generic_Array_Sort (
-         Index_Type   => Positive,
+         Index_Type   => Pop_Range,
          Element_Type => Evaluated_Gene,
          Array_Type   => Evaluated_Gene_Array);
 
@@ -106,114 +99,99 @@ package body Ga.Population is
       return New_Arr;
    end Sort_Gene_Array;
 
+
+   function Normalize(P : in Pop_Type) return Pop_Type is
+	     Last_Element_Value : Float := P.Pop(P.Pop'Last).V;	
+		 New_Pop : Pop_Type := P;
+   begin
+	  New_Pop.Pop_Sum := 0.0;
+	  For I in P.Pop'Range loop
+			 New_Pop.Pop (I) := P.Pop(I);
+			 New_Pop.Pop (I).V := P.Pop (I).V -
+			 					  Last_Element_Value;
+			 New_Pop.Pop_Sum := New_Pop.Pop_Sum + New_Pop.Pop(I).V;
+		  end loop;
+	  return New_Pop;
+   end; 
+
+  	  -- selection
+      function Wheel_Select
+        (A : in Pop_Type)
+         return         Evaluated_Gene
+      is
+		 use Ada.Numerics.Float_Random;
+		 use Ada.Text_IO;
+         C : Float    :=
+           Random (Selection_Wheel_Random) * A.Pop_Sum * Pop_Conservation;
+         F : Float    := A.Pop (A.Pop'First).V;
+         I : Positive := A.Pop'First;
+      begin
+		    Put_Line("Select " & Float'Image(C) & " in " & Float'Image(A.Pop_Sum));
+
+         while I < A.Pop'Last and then F <= C loop
+            I := I + 1;
+            F := F + A.Pop (I).V;
+         end loop;
+		    Put_Line("Element selected " & Natural'Image(I));
+         return A.Pop (I);
+
+      end Wheel_Select;
+
+	procedure Dump(Popu: in Pop_Type) is 
+	  use Ada.Text_IO;
+	begin
+		for I in Popu.Pop'Range loop
+			Put_Line(" e " & Natural'Image(I) & " :" & Image(Popu.Pop(I).C) & " -> " & Float'Image(Popu.Pop(I).V));
+		end loop;
+	end;
+
+
    -- make evolve a population
    function New_Generation (P : in Pop_Type) return Pop_Type is
       use Ada.Numerics.Float_Random;
 
+
       New_Pop : Pop_Type;
-
-      function Sum (ECA : Evaluated_Gene_Array) return Float is
-         V : Float := 0.0;
-      begin
-         for I in ECA'Range loop
-            V := V + ECA (I).V;
-         end loop;
-         return V;
-      end Sum;
-
-      -- selection
-      function Wheel_Select
-        (Sorted_Array : in Evaluated_Gene_Array)
-         return         Evaluated_Gene
-      is
-         C : Float    :=
-           Random (Selection_Wheel_Random) * Sum (Sorted_Array);
-         F : Float    := Sorted_Array (Sorted_Array'First).V;
-         I : Positive := Sorted_Array'First;
-      begin
-
-         while I < Sorted_Array'Last and then F <= C loop
-            I := I + 1;
-            F := F + Sorted_Array (I).V;
-         end loop;
-
-         if I > Sorted_Array'Last then
-            I := Sorted_Array'Last;
-         end if;
-
-         return Sorted_Array (I);
-
-      end Wheel_Select;
-
-      --
-      -- improve the local search of solutions
-      --
-      procedure Normalize
-        (Sorted_Array : in out Evaluated_Gene_Array)
-      is
-      begin
-         for I in Sorted_Array'Range loop
-            Sorted_Array (I).V := Sorted_Array (I).V -
-                                  Sorted_Array (Sorted_Array'Last).V;
-         end loop;
-      end Normalize;
+	  Normalized : Pop_Type := Normalize(P);
 
    begin
-      if P.Gene_Count = 0 then
-         -- no elements
-         return New_Pop;
-      end if;
 
-      declare
-         Last_Index_Conservation : Positive :=
-           Natural (Pop_Conservation * Float (P.Gene_Count - 1) + 1.0);
+	 for I in 1 .. Pop_Size / 2 loop
+		declare
+		   EC1 : Evaluated_Gene :=
+			 Wheel_Select (Normalized);
+		   EC2 : Evaluated_Gene :=
+			 Wheel_Select (Normalized);
+		   Child1 : Gene := EC1.C;
+		   Child2 : Gene := EC2.C;
+		begin
 
-         Selected_Population : Evaluated_Gene_Array :=
-           Sort_Gene_Array (P.Pop (1 .. Last_Index_Conservation));
-      begin
+		   -- cross over ...
+		   if Random (Crossover_Random) < Crossover_Ratio then
+				 Cross_Over (Child1, Child2, Child1, Child2);
+		   end if;
 
-         Normalize (Selected_Population);
+		   -- mutate 1
 
-         for I in 1 .. Pop_Size / 2 loop
-            declare
-               EC1 : Evaluated_Gene :=
-                 Wheel_Select (Selected_Population);
-               EC2 : Evaluated_Gene :=
-                 Wheel_Select (Selected_Population);
-            begin
+		   if Random (Mutation_Random) < Mutation_Ratio then
+			  Child1 := Mutate (Child1);
+		   end if;
 
-               -- cross over ...
-               if Random (Crossover_Random) < Crossover_Ratio then
-                  declare
-                     Cout1, Cout2 : Gene;
-                  begin
-                     Cross_Over (EC1.C, EC2.C, Cout1, Cout2);
-                     EC1.C := Cout1;
-                     EC2.C := Cout2;
-                  end;
-               end if;
+		   -- mutate 2
 
-               -- mutate 1
+		   if Random (Mutation_Random) < Mutation_Ratio then
+			  Child2 := Mutate (Child2);
+		   end if;
 
-               if Random (Mutation_Random) < Mutation_Ratio then
-                  EC1.C := Mutate (EC1.C);
-               end if;
+		   Add (New_Pop, Child1, 2*I - 1);
+		   Add (New_Pop, Child2, 2*I);
 
-               -- mutate 2
+		end;
 
-               if Random (Mutation_Random) < Mutation_Ratio then
-                  EC2.C := Mutate (EC2.C);
-               end if;
+	 end loop;
 
-               Add (New_Pop, EC1.C);
-               Add (New_Pop, EC2.C);
-
-            end;
-
-         end loop;
-
-      end;
-      return New_Pop;
+	  New_Pop.Pop := Sort_Gene_Array(New_Pop.Pop);
+	  return New_Pop;
    end New_Generation;
 
 end Ga.Population;

@@ -30,9 +30,10 @@ generic
       Cout1, Cout2 : out Gene);
    with function Mutate (C : Gene) return Gene;
    with function Random return Gene;
+   with function Image(C : Gene) return String;
 
    Pop_Size : Positive := 50;
-   Pop_Conservation : Float := 0.8; -- on garde les 80 des meilleurs individus
+   Pop_Conservation : Float := 1.0; -- on garde les 80 des meilleurs individus
                                     --pour le cross over
 
    -- cross over rate, if the random usage is below the Crossover_Ratio, we
@@ -55,6 +56,10 @@ package Ga.Population is
    -- return the best chromosome for this population
    function Best_Gene (P : Pop_Type) return Gene;
 
+   -- diaply the pop
+   procedure Dump(Popu: in Pop_Type);
+
+
    Empty_Population : exception;
 
 private
@@ -65,14 +70,19 @@ private
       V : Float;
    end record;
 
+   subtype Pop_Range is Positive range 1..Pop_Size;
+
    -- array of Evaluated_Gene
    type Evaluated_Gene_Array is
-     array (Positive range <>) of Evaluated_Gene;
+     array (Pop_Range range <>) of Evaluated_Gene;
+
 
    -- Population type
    type Pop_Type is record
-      Pop              : Evaluated_Gene_Array (1 .. Pop_Size);
-      Gene_Count : Natural := 0;
+      Pop              : Evaluated_Gene_Array(Pop_Range);
+      Pop_Sum		   : Float;
    end record;
+
+
 
 end Ga.Population;

@@ -22,6 +22,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Numerics.Discrete_Random;
+with Ada.Text_IO;
+use Ada.Text_IO;
 
 package body GA.Scalar is
 
@@ -52,6 +54,8 @@ package body GA.Scalar is
       Decoupe : Binary_Gene_Range :=
        Random(Binary_Gene_Generator);
    begin
+      
+      -- Put_Line ("Decoupe :" & Binary_Gene_Range'Image(Decoupe));
 
       if Decoupe = Binary_Gene_Range'First or
         Decoupe = Binary_Gene_Range'Last then
@@ -59,16 +63,24 @@ package body GA.Scalar is
          Cout2 := C1;
       else
 
-         Cout1(Binary_Gene_Range'First .. Decoupe)
-           := C1(Binary_Gene_Range'First .. Decoupe);
-         Cout1(Decoupe + 1 .. Binary_Gene_Range'Last)
-           := C2(Decoupe + 1 .. Binary_Gene_Range'Last);
+		 declare
+			OUT1, OUT2 : Binary_Gene;
+		 begin
 
-         Cout2(Binary_Gene_Range'First .. Decoupe)
-           := C2(Binary_Gene_Range'First .. Decoupe);
-         Cout2(Decoupe + 1 .. Binary_Gene_Range'Last)
-           := C1(Decoupe + 1 .. Binary_Gene_Range'Last);
+			 OUT1(Binary_Gene_Range'First .. Decoupe)
+			   := C1(Binary_Gene_Range'First .. Decoupe);
+			 OUT1(Decoupe + 1 .. Binary_Gene_Range'Last)
+			   := C2(Decoupe + 1 .. Binary_Gene_Range'Last);
 
+			 OUT2(Binary_Gene_Range'First .. Decoupe)
+			   := C2(Binary_Gene_Range'First .. Decoupe);
+			 OUT2(Decoupe + 1 .. Binary_Gene_Range'Last)
+			   := C1(Decoupe + 1 .. Binary_Gene_Range'Last);
+
+			 Cout1 := OUT1;
+			 Cout2 := OUT2;
+
+		 end;
       end if;
 
 

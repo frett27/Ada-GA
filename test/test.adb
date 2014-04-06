@@ -27,6 +27,8 @@ with Ga.scalar;
 with Ada.Text_Io;
 use Ada.Text_Io;
 
+with Ada.Numerics.Generic_Elementary_Functions;
+
 procedure Test is
 
 
@@ -36,39 +38,70 @@ procedure Test is
    package CS is new Ga.Scalar(Binary_Gene_Range 
 								=> Gene_Length);
 
+   package M is new Ada.Numerics.Generic_Elementary_Functions(Float);
    -- score function that evaluate the adaptative value of the chromosome
    -- this is the (Max - X)**2 function
    function Eval_X2(C : CS.Binary_Gene) return Float is
+      use M;
    begin
-      return (Float(2 ** 30 - 1) - Cs.Eval(C)) ** 2;
+      return (Float(2 ** Gene_Length'Last) - Cs.Eval(C)) ** 2;
    end;
 
 
    use Cs;
 
+
+
    -- instanciate the GA package for GA computation
    -- we mainly use the Gascalar operations, except for Eval
-   package P is new Ga.Population(Gene=>Binary_Gene,
+   package P is new Ga.Population(Gene=>CS.Binary_Gene,
                        Eval => Eval_x2 ,
-                       Cross_Over => Cross_Over,
-                       Mutate => Mutate,
-                       Random => Random,
-                       Pop_Size => 500);
-   -- current population
-   Pop : P.Pop_Type := P.Create_Random_Pop;
+                       Cross_Over => CS.Cross_Over,
+                       Mutate => CS.Mutate,
+                       Random => CS.Random,
+                       Image => CS.Image,
+                       Pop_Size => 300);
+
+
+
+	procedure Test_Population is 
+       -- current population
+       Pop : P.Pop_Type := P.Create_Random_Pop;
+	begin
+
+
+	   Put_Line (" best chromosome of the initial generation :");
+	   Put_Line (CS.Image(P.Best_Gene(Pop)));
+	   Put_Line ("chromosome : " & Float'Image(Eval_x2(P.Best_Gene(Pop))));
+	   Put_Line ("");
+
+	   for I in 1..100 loop
+		  Pop := P.New_Generation(Pop);
+		  Put_Line (" Pop :" & Natural'Image(I) & " best :" & CS.Image(P.Best_Gene(Pop)) & " - " & Float'Image(Eval_x2(P.Best_Gene(Pop))));
+		  P.Dump(Pop);
+	   end loop;
+
+	   Put_Line ( " Value of the best chromosome :" & Float'Image(Eval_x2(P.Best_Gene(Pop))));
+	   Put_Line (CS.Image(P.Best_Gene(Pop)));
+
+
+	end Test_Population;
+
+
+	procedure Test_Cross_Over is
+        G1,G2 : CS.Binary_Gene := CS.Random;
+	begin
+		Put_Line ("unit test");
+		Put_Line (" C1 :" & CS.Image(G1)); 
+		Put_Line (" C2 :" & CS.Image(G2)); 
+		Put_Line ("Cross over :"); 
+		CS.Cross_Over(G1,G2,G1,G2); 
+
+		Put_Line (" C1 :" & CS.Image(G1)); 
+		Put_Line (" C2 :" & CS.Image(G2)); 
+	end;
+
 
 begin
-
-   Put_Line (" generation initiale ");
-   Put_Line (CS.Image(P.Best_Gene(Pop)));
-
-   Put_Line (" 5000 new generations ");
-   for I in 1..5000 loop
-      Pop := P.New_Generation(Pop);
-   end loop;
-
-   Put_Line(CS.Image(P.Best_Gene(Pop)));
-   Put_Line( " Value of the best chromosome :" & Float'Image(Eval_x2(P.Best_Gene(Pop))));
-
-
+	Test_Population;
 end;
