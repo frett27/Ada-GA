@@ -31,15 +31,15 @@ generic
    with function Image (C : Gene) return String;
 
    Pop_Size : Positive := 50;
-   Pop_Conservation : Float := 1.0; -- on garde les 80 des meilleurs individus
-                                    --pour le cross over
+   Pop_Conservation : Float := 1.0; -- keep only a fraction of the population for cross over
+		-- that is also called elitism
 
    -- cross over rate, if the random usage is below the Crossover_Ratio, we
    -- make a crossover on the 2 chromosomes
    Crossover_Ratio : Float := 0.7;
 
    -- mutation ratio for mutate the chromosome
-   Mutation_Ratio : Float := 0.05;
+   Mutation_Ratio : Float := 0.03;
 
 package Ga.Population is
 
@@ -54,7 +54,7 @@ package Ga.Population is
    -- return the best chromosome for this population
    function Best_Gene (P : Pop_Type) return Gene;
 
-   -- diaply the pop
+   -- display the pop for debug purpose
    procedure Dump (Popu : in Pop_Type);
 
    Empty_Population : exception;

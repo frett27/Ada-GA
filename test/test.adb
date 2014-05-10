@@ -55,7 +55,7 @@ procedure Test is
       Mutate     => CS.Mutate,
       Random     => CS.Random,
       Image      => CS.Image,
-      Pop_Size   => 300);
+      Pop_Size   => 200);
 
    procedure Test_Population is
       -- current population
@@ -68,7 +68,7 @@ procedure Test is
         ("chromosome : " & Float'Image (Eval_X2 (P.Best_Gene (Pop))));
       Put_Line ("");
 
-      for I in 1 .. 100 loop
+      for I in 1 .. 5000 loop
          Pop := P.New_Generation (Pop);
          Put_Line
            (" Pop :" &

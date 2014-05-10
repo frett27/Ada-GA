@@ -34,6 +34,24 @@ package body Ga.Population is
       return Left.V > Right.V;
    end "<";
 
+   -- create a new array sorted by the inverted order of the chromosome value
+   function Sort_Gene_Array
+     (A    : Evaluated_Gene_Array)
+      return Evaluated_Gene_Array
+   is
+      New_Arr : Evaluated_Gene_Array := A;
+
+      procedure Sort is new Ada.Containers.Generic_Array_Sort (
+         Index_Type   => Pop_Range,
+         Element_Type => Evaluated_Gene,
+         Array_Type   => Evaluated_Gene_Array);
+
+   begin
+      Sort (New_Arr);
+      return New_Arr;
+   end Sort_Gene_Array;
+
+
    procedure Add (P : in out Pop_Type; C : in Gene; I : Pop_Range) is
    begin
       declare
@@ -50,20 +68,17 @@ package body Ga.Population is
       for I in Pop_Range loop
          Add (New_Pop, Random, I);
       end loop;
+	  -- sorting
+	  New_Pop.Pop := Sort_Gene_Array(New_Pop.Pop);
       return New_Pop;
    end Create_Random_Pop;
 
    -- look the best chromosome of the population
-   -- this is a o(n) implementation
+   -- As the population is always sorted in descendent order, 
+   -- the first item is always the best one
    function Best_Gene (P : Pop_Type) return Gene is
-      J : Positive := 1;
    begin
-      for I in Pop_Range loop
-         if Eval (P.Pop (I).C) > Eval (P.Pop (J).C) then
-            J := I;
-         end if;
-      end loop;
-      return P.Pop (J).C;
+	  return P.Pop(P.Pop'First).C;
    end Best_Gene;
 
    -------------------------------------------------------------
@@ -82,24 +97,7 @@ package body Ga.Population is
    -- Random Generator for Mutation
    Mutation_Random : Ada.Numerics.Float_Random.Generator;
 
-   -- create a new array sorted by the inverted order of the chromosome value
-   function Sort_Gene_Array
-     (A    : Evaluated_Gene_Array)
-      return Evaluated_Gene_Array
-   is
-      New_Arr : Evaluated_Gene_Array := A;
-
-      procedure Sort is new Ada.Containers.Generic_Array_Sort (
-         Index_Type   => Pop_Range,
-         Element_Type => Evaluated_Gene,
-         Array_Type   => Evaluated_Gene_Array);
-
-   begin
-      Sort (New_Arr);
-      return New_Arr;
-   end Sort_Gene_Array;
-
-   function Normalize (P : in Pop_Type) return Pop_Type is
+   function Normalize_And_Compute_Sum (P : in Pop_Type) return Pop_Type is
       Last_Element_Value : Float    := P.Pop (P.Pop'Last).V;
       New_Pop            : Pop_Type := P;
    begin
@@ -110,7 +108,7 @@ package body Ga.Population is
          New_Pop.Pop_Sum   := New_Pop.Pop_Sum + New_Pop.Pop (I).V;
       end loop;
       return New_Pop;
-   end Normalize;
+   end Normalize_And_Compute_Sum;
 
    -- selection
    function Wheel_Select (A : in Pop_Type) return Evaluated_Gene is
@@ -124,7 +122,7 @@ package body Ga.Population is
       Put_Line
         ("Select " & Float'Image (C) & " in " & Float'Image (A.Pop_Sum));
 
-      while I < A.Pop'Last and then F <= C loop
+      while I <= A.Pop'Last and then F <= C loop
          I := I + 1;
          F := F + A.Pop (I).V;
       end loop;
@@ -150,9 +148,10 @@ package body Ga.Population is
    -- make evolve a population
    function New_Generation (P : in Pop_Type) return Pop_Type is
       use Ada.Numerics.Float_Random;
+      use Ada.Text_IO;
 
       New_Pop    : Pop_Type;
-      Normalized : Pop_Type := Normalize (P);
+      Normalized : Pop_Type := Normalize_And_Compute_Sum(P);
 
    begin
 
@@ -172,13 +171,17 @@ package body Ga.Population is
             -- mutate 1
 
             if Random (Mutation_Random) < Mutation_Ratio then
+			   Put_Line("Mutate :" & Image(Child1));
                Child1 := Mutate (Child1);
+			   Put_Line(" Mutate result :" & Image(Child1));
             end if;
 
             -- mutate 2
 
             if Random (Mutation_Random) < Mutation_Ratio then
+			   Put_Line("Mutate :" & Image(Child2));
                Child2 := Mutate (Child2);
+			   Put_Line(" Mutate result :" & Image(Child2));
             end if;
 
             Add (New_Pop, Child1, 2 * I - 1);
