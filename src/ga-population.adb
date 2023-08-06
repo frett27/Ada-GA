@@ -128,7 +128,6 @@ package body Ga.Population is
       end loop;
       Put_Line ("Element selected " & Natural'Image (I));
       return A.Pop (I);
-
    end Wheel_Select;
 
    procedure Dump (Popu : in Pop_Type) is

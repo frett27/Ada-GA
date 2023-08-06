@@ -3,8 +3,6 @@ Ada-GA
 
 This project is a small library to compute genetic algorithm in Ada.
 
-The aim is to use the Ada Generic System to provide the best performances (Mostly Static, no heap allocation).
-
 Currently :
 - binary chromosomes are provided, additional chromosome could be used in creating a new chromosome type
 - Population Elitism (conserv a pourcentage of the best chromosomes)
@@ -17,6 +15,10 @@ Random Generators are clearly separated on :
 - Chromosome
 
 a test function show the use of the library for a scalar encoding of chromosome.
+
+## Updates
+
+2023-08-06 : recompile on linux, not added to alire package manager, the name of the lib is too short.
 
 ## Install - Compile - Test ##
 
